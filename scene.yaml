@@ -80,18 +80,39 @@ styles:
                     bool isRoof() {
                         return dot(v_normal,vec3(0.,0.,1.)) == 0.0;
                     }
-
-    _polygons_tilt_rotate:
+    _buildings_tilt_rotate:
         texcoords: true
         base: polygons
+        blend: inlay
         mix: [functions-map, geometry-tilt]
         shaders:
             blocks:
                 filter: |
                     color.rgb += vec3(1.0)* min( 1.-(worldPosition().z*.001 + .7) , 0.5 );
+    _building_lines_tilt_rotate:
+        texcoords: true
+        base: lines
+        blend: inlay
+        mix: [functions-map, geometry-tilt]
+        shaders:
+            blocks:
+                filter: |
+                    color.rgb += vec3(1.0)* min( 1.-(worldPosition().z*.001 + .7) , 0.5 );
+                    
+    _polygons_tilt_rotate:
+        texcoords: true
+        base: polygons
+        # blend: add
+        mix: [functions-map, geometry-tilt]
+        shaders:
+            blocks:
+                filter: |
+                    color.rgb += vec3(1.0)* min( 1.-(worldPosition().z*.001 + .7) , 0.5 );
+                    
     _lines_tilt_rotate:
         texcoords: true
         base: lines
+        # blend: add
         mix: [functions-map, geometry-tilt]
         shaders:
             blocks:
@@ -110,16 +131,16 @@ styles:
         base: text
         mix: [functions-map, geometry-tilt]
                      
-    roads:
-        x:
-            y:
-                z:
-                    x:
-                        y:
-                            z:
-                                draw:
-                                    lines:
-                                        style: _lines_tilt_rotate
+    # roads:
+    #     x:
+    #         y:
+    #             z:
+    #                 x:
+    #                     y:
+    #                         z:
+    #                             draw:
+    #                                 lines:
+    #                                     style: _lines_tilt_rotate
     earth:
         base: polygons
         mix: [geometry-tilt]
@@ -168,16 +189,17 @@ layers:
             draw:
                 polygons:
                     order: 1000
-                    style: _polygons_tilt_rotate
+                    style: _buildings_tilt_rotate
                     # extrude: BLDG_HT
                     extrude: function() {return (feature.BLDG_HT + 0 )}
                     # order: 4
-                    color: '#999'
+                    color: [1,0,0,0.75]
                 lines:
-                    order: 1001
-                    style: _lines_tilt_rotate
+                    width: 1px
+                    order: 2001
+                    style: _building_lines_tilt_rotate
                     extrude: function() {return (feature.BLDG_HT + 0 )}
-                    color: '#000'
+                    color: black #'#000'
                 text:
                     style: _text_tilt_rotate
                     collide: false
