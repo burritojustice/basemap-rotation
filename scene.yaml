@@ -43,6 +43,7 @@ textures:
      building-grid:
         filtering: mipmap
         url: https://raw.githubusercontent.com/tangrams/refill-style/gh-pages/images/building-grid.gif
+        #url: https://raw.githubusercontent.com/burritojustice/basemap-rotation/master/square.gif
 scene:
     background:
         color: [0.114, 0.114, 0.114]
@@ -87,7 +88,7 @@ styles:
                 position: |
                     float t = u_time*0.1; 
                     float z = smoothstep(0.7,1.,max((u_map_position.z)/20.,0.)*0.9);
-                    position.xyz = rotateX3D(z*HALF_PI) * rotateZ3D(sin(t)*PI*z) * position.xyz;
+                    position.xyz = rotateX3D(z*HALF_PI)  * position.xyz;
     geometry-normal:
         shaders:
             blocks:
@@ -114,9 +115,9 @@ styles:
             blocks:
                 color: "// If it's a wall\ncolor.rgb = mix(mix(color.rgb, u_grid_color.rgb,\
                   \ texture2D(u_tex_grid, v_texcoord).a),\n                color.rgb,\n  \
-                  \              step(.5,dot(vec3(0., 0., 1.), worldNormal())));\n"
+                  \              step(.5,dot(vec3(0., 0., 0.5), worldNormal())));\n"
             defines:
-                WALL_TINT: vec3(1., 3., .993)
+                WALL_TINT: vec3(1., 3., .193)
             uniforms:
                 u_grid_color: global.black_color
                 u_tex_grid: building-grid
@@ -125,7 +126,7 @@ styles:
     _building_lines_tilt_rotate:
         texcoords: true
         base: lines
-        blend: inlay
+        # blend: inlay
         mix: [functions-map, geometry-tilt]
         shaders:
             blocks:
