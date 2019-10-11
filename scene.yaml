@@ -39,10 +39,31 @@ lights:
         ambient: .2
         diffuse: .2
         specular: .5
+textures:
+     building-grid:
+        filtering: mipmap
+        url: https://raw.githubusercontent.com/tangrams/refill-style/gh-pages/images/building-grid.gif
 scene:
     background:
         color: [0.114, 0.114, 0.114]
 styles:
+    building-grid:
+        base: polygons
+        mix: geometry-tilt
+        lighting: false
+        shaders:
+            blocks:
+                color: "// If it's a wall\ncolor.rgb = mix(mix(color.rgb, u_grid_color.rgb,\
+                  \ texture2D(u_tex_grid, v_texcoord).a),\n                color.rgb,\n  \
+                  \              step(.5,dot(vec3(0., 0., 1.), worldNormal())));\n"
+            defines:
+                WALL_TINT: vec3(1., 3., .993)
+            uniforms:
+                u_grid_color: global.black_color
+                u_tex_grid: building-grid
+        texcoords: true
+
+    
     geometry-tilt:
         animated: true
         shaders:
@@ -83,12 +104,24 @@ styles:
     _buildings_tilt_rotate:
         texcoords: true
         base: polygons
-        blend: inlay
+        blend: overlay
         mix: [functions-map, geometry-tilt]
         shaders:
             blocks:
                 filter: |
                     color.rgb += vec3(1.0)* min( 1.-(worldPosition().z*.001 + .7) , 0.5 );
+        shaders:
+            blocks:
+                color: "// If it's a wall\ncolor.rgb = mix(mix(color.rgb, u_grid_color.rgb,\
+                  \ texture2D(u_tex_grid, v_texcoord).a),\n                color.rgb,\n  \
+                  \              step(.5,dot(vec3(0., 0., 1.), worldNormal())));\n"
+            defines:
+                WALL_TINT: vec3(1., 3., .993)
+            uniforms:
+                u_grid_color: global.black_color
+                u_tex_grid: building-grid
+        texcoords: true
+                    
     _building_lines_tilt_rotate:
         texcoords: true
         base: lines
@@ -193,7 +226,7 @@ layers:
                     # extrude: BLDG_HT
                     extrude: function() {return (feature.BLDG_HT + 0 )}
                     # order: 4
-                    color: [1,0,0,0.75]
+                    color: [1,1,1,0.65]
                 lines:
                     width: 1px
                     order: 2001
