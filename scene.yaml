@@ -89,6 +89,9 @@ styles:
                     float t = u_time*0.1; 
                     float z = smoothstep(0.7,1.,max((u_map_position.z)/20.,0.)*0.9);
                     position.xyz = rotateX3D(z*HALF_PI)  * position.xyz;
+                    # position.xyz = rotateX3D(z*HALF_PI) * rotateZ3D(sin(t)*PI*z) * position.xyz;
+                    # ^ rotateZ3D(sin(t)*PI*z) will rotate, but you'll need to disable road labels
+
     geometry-normal:
         shaders:
             blocks:
