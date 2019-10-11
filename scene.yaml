@@ -1,0 +1,196 @@
+# Author @patriciogv - 2015
+import: 
+    - https://s3.amazonaws.com/xyz-demo/data/demo.yaml
+    - https://raw.githubusercontent.com/burritojustice/xyz-studio-dark/master/scene.yaml
+
+sources:
+    osm:
+        type: MVT
+        # url: https://tile.nextzen.org/tilezen/vector/v1/all/{z}/{x}/{y}.topojson
+        url: https://tile.nextzen.org/tilezen/vector/v1/all/{z}/{x}/{y}.mvt
+        max_zoom: 16
+        url_params:
+            api_key: global.sdk_api_key
+    _atlanta:
+        url: https://xyz.api.here.com/hub/spaces/cnsnN4b4/tile/web/{z}_{x}_{y}
+        # url: https://xyz.api.here.com/hub/spaces/uEkuuLXY/tile/web/{z}_{x}_{y}
+        type: GeoJSON
+        # max_zoom: 13
+        url_params: 
+            access_token: AFbjoHrBlTB2K5_gqvcP_S8
+            # tags: hex34253h04I1P7klSpz # cell_100
+            clip: true
+            
+cameras:
+    perspective:
+        type: perspective
+        vanishing_point: [0, -1000]
+lights:
+    directional1:
+        type: directional
+        direction: [0.293,-0.861,-0.415]
+        ambient: .5
+        diffuse: .9
+        specular: 1.
+    point1:
+        type: point
+        position: [0, -100, 0px]
+        origin: ground
+        ambient: .2
+        diffuse: .2
+        specular: .5
+scene:
+    background:
+        color: [0.114, 0.114, 0.114]
+styles:
+    geometry-tilt:
+        animated: true
+        shaders:
+            defines:
+                PI: 3.1415926535897932384626433832795
+                HALF_PI: 1.5707963267948966192313216916398
+            blocks:
+                global: |
+                    mat3 rotateX3D(float phi){
+                        return mat3(
+                            vec3(1.,0.,0.),
+                            vec3(0.,cos(phi),-sin(phi)),
+                            vec3(0.,sin(phi),cos(phi)));
+                    }
+                    mat3 rotateZ3D(float psi){
+                        return mat3(
+                            vec3(cos(psi),-sin(psi),0.),
+                            vec3(sin(psi),cos(psi),0.),
+                            vec3(0.,0.,1.));
+                    }
+                position: |
+                    float t = u_time*0.1; 
+                    float z = smoothstep(0.7,1.,max((u_map_position.z)/20.,0.)*0.9);
+                    position.xyz = rotateX3D(z*HALF_PI) * rotateZ3D(sin(t)*PI*z) * position.xyz;
+    geometry-normal:
+        shaders:
+            blocks:
+                global: |
+                    // Ask to the geometry normals if this surface is a Wall
+                    bool isWall() {
+                        return dot(v_normal,vec3(0.,0.,1.)) == 0.0;
+                    }
+                    //
+                    // Ask to the geometry normals if this surface is a roof
+                    bool isRoof() {
+                        return dot(v_normal,vec3(0.,0.,1.)) == 0.0;
+                    }
+
+    _polygons_tilt_rotate:
+        texcoords: true
+        base: polygons
+        mix: [functions-map, geometry-tilt]
+        shaders:
+            blocks:
+                filter: |
+                    color.rgb += vec3(1.0)* min( 1.-(worldPosition().z*.001 + .7) , 0.5 );
+    _lines_tilt_rotate:
+        texcoords: true
+        base: lines
+        mix: [functions-map, geometry-tilt]
+        shaders:
+            blocks:
+                filter: |
+                    color.rgb += vec3(1.0)* min( 1.-(worldPosition().z*.001 + .7) , 0.5 );
+    _points_tilt_rotate:
+        texcoords: true
+        base: points
+        mix: [functions-map, geometry-tilt]
+        shaders:
+            blocks:
+                filter: |
+                    color.rgb += vec3(1.0)* min( 1.-(worldPosition().z*.001 + .7) , 0.5 );
+    _text_tilt_rotate:
+        texcoords: true
+        base: text
+        mix: [functions-map, geometry-tilt]
+                     
+    roads:
+        x:
+            y:
+                z:
+                    x:
+                        y:
+                            z:
+                                draw:
+                                    lines:
+                                        style: _lines_tilt_rotate
+    earth:
+        base: polygons
+        mix: [geometry-tilt]
+    water:
+        base: polygons
+        mix: [geometry-tilt]
+
+    
+layers:
+    buildings:
+        enabled: false
+    # earth:
+    #     data: { source: osm }
+    #     draw:
+    #         earth:
+    #             order: 0
+    #             color: '#555'
+    # landuse:
+    #     data: { source: osm }
+    #     draw:
+    #         earth:
+    #             order: 1
+    #             color: '#666'
+    # water:
+    #     data: { source: osm }
+    #     draw:
+    #         water:
+    #             order: 2
+    #             color: '#555'
+    # roads:
+    #     data: { source: osm }
+    #     filter: { not: { kind: [rail, ferry] } }
+    #     # properties: { width: 3 }
+    #     draw:
+    #         roads:
+    #             order: 3
+    #             color: black
+    #             width: 5
+
+    _buildings:
+        # enabled: false
+        data: { source: _atlanta }
+        filter: { $zoom: { min: 10 } }
+        x:
+            # filter: function(){ return feature.height > 100; }
+            draw:
+                polygons:
+                    order: 1000
+                    style: _polygons_tilt_rotate
+                    # extrude: BLDG_HT
+                    extrude: function() {return (feature.BLDG_HT + 0 )}
+                    # order: 4
+                    color: '#999'
+                lines:
+                    order: 1001
+                    style: _lines_tilt_rotate
+                    extrude: function() {return (feature.BLDG_HT + 0 )}
+                    color: '#000'
+                text:
+                    style: _text_tilt_rotate
+                    collide: false
+                    optional: true
+                    text_source: BLDG_NAME
+                    font:
+                        fill: black
+                        size: 12px
+                        stroke:
+                            color: [1,1,1,0.75]
+                            width: 3px
+                        
+
+                    
+                        
+        
